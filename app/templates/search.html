@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<DOCTYPE html>
 <html>
 <head>
   <title>Search</title>
@@ -8,6 +8,10 @@
   <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/search.css') }}">
 </head>
 <body>
+
+<nav>
+  <a title="Upload a new PDF" class="upload-link" href="/upload">+ Upload</a>
+</nav>
 
 <form>
   <input type="text" name="s">

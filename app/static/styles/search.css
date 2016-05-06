@@ -22,6 +22,32 @@ body {
   font-family: 'Helvetica', Arial, sans-serif;
 }
 
+a {
+  color: #168dff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: red;
+}
+
+.upload-link {
+  padding: 5px;
+  float:right;
+}
+
+.notice {
+  position: absolute;
+  top: 0;
+  float: left;
+  color: #ccc;
+  font-size: 8px;
+}
+
 form {
   position: absolute;
   top: 0;
