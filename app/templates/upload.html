@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Search</title>
+  <title>Upload</title>
   <meta charset="UTF-8">
   <meta name="robots" content="noindex">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,12 +9,12 @@
 <body>
 
 <nav>
-  <a title="Upload a new PDF" class="upload-link" href="/upload">+ Upload</a>
+  <a title="Search in database" class="upload-link" href="/search">+ Search</a>
 </nav>
 
-<form>
-  <input type="text" name="s">
-  <input type="submit" class="search" value="Search" formmethod="get">
+<form enctype="multipart/form-data">
+  <input type="file" id="file" accept="application/pdf" name="file" multiple>
+  <input type="submit" class="search" value="Upload" formmethod="post" formaction="">
 </form>
 
 </body>

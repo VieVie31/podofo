@@ -1,6 +1,7 @@
 .DS_Store
 ._.DS_Store
 instance/
+pdf/
 *.pyc
 *.pyo
-
+*.swp

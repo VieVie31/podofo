@@ -40,14 +40,6 @@ a:visited {
   float:right;
 }
 
-.notice {
-  position: absolute;
-  top: 0;
-  float: left;
-  color: #ccc;
-  font-size: 8px;
-}
-
 form {
   position: absolute;
   top: 0;
@@ -70,7 +62,7 @@ form {
           transform: translateZ(0);
 }
 
-form input[type="text"] {
+form input[type="text"], form input[type="file"] {
   -webkit-box-flex: 1;
   -webkit-flex: 1;
       -ms-flex: 1;
@@ -85,7 +77,11 @@ form input[type="text"] {
   transition: background-color .2s ease-out;
 }
 
-form input[type="text"]:focus {
+form input[type="file"] {
+  padding: 10.5px;
+}
+
+form input[type="text"]:focus, form input[type="file"] {
   background-color: #fefbf3;
 }
 
