@@ -30,15 +30,31 @@ def uploaded_page():
 	file_name = uploaded_file.filename
 	if file_name: #TODO : add more contidions (size, type, allready upld, etc)
             file_name = str(int(time())) + "_" + secure_filename(file_name)
-	    uploaded_file.save(app.config['PDF_DIR'] + file_name) #temporary save
-	    # TODO : processing on the file ...
+	    pdf_path = app.config['PDF_DIR'] + file_name
+	    uploaded_file.save(pdf_path) #temporary save
+
+	    # TODO : processing the file ...
+	    counter = None
+	    try:
+		txt = read_as_txt(pdf_path)
+
+		if not txt:
+		    remove(pdf_path)
+		    return "We cann't extract nothing from this pdf... <a href='/search'>search</a>."
+
+		counter = get_word_cout(txt)
+	    except:
+		remove(pdf_path)
+		return "This is not a pdf... <a href='/search'>search</a>." 
+
+	    # check if the hash all ready exists in the db
 	    if pdf_allready_exists(file_name):
 		#remove the pdf from the directory
-		remove(app.config['PDF_DIR'] + file_name)
-		return "This pdf allready exist in the database..."
+		remove(pdf_path)
+		return "This pdf allready exist in the database... <a href='/search'>search</a>."
 	    insert_pdf_to_db(file_name) #add the pdf to the database
-	    # TODO : update all the words frequencies ...
-	    return "File {} successfully uploaded... <a href='/search'>search</a>.".format(uploaded_file.filename)
+	    # TODO : update all the words frequencies ... cf. counter
+	    return "File {} successfully uploaded... <a href='/search'>search</a>.</br>{}".format(uploaded_file.filename, str(counter))
     except:
 	return "Fail to upload"
 

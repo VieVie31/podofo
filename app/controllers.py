@@ -1,11 +1,12 @@
 import hashlib
 import sqlite3
 
-from collections import Counter
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
+
+from collections import Counter
 from cStringIO import StringIO
 from time import time
 from app import app
@@ -15,10 +16,16 @@ def conn_to_db(db_name):
     return conn
 
 def pdf_allready_exists(pdf_name):
-    # TODO : check if a pdf is all ready in the database using the hash
+    # check if a pdf is all ready in the database using the hash
+    pdf_hash = hash_file(app.config['PDF_DIR'] + pdf_name)
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT NAME, HASH, DATE FROM PDF WHERE HASH = '{}'".format(pdf_hash))
+    for row in cursor: #just look if it contain one...
+	return True
     return False
 
 def insert_pdf_to_db(pdf_name):
+    # insert a pdf into the database
     path = app.config['PDF_DIR'] + pdf_name
     conn = conn_to_db('pdf.db')
     conn.execute("INSERT INTO PDF (NAME, HASH, DATE) VALUES ('{}', '{}', {})".format(
@@ -27,6 +34,7 @@ def insert_pdf_to_db(pdf_name):
     conn.close()
 
 def hash_file(path):
+    # return the md5 hash of a file
     BLOCKSIZE = 65536
     hasher = hashlib.md5()
 
@@ -38,35 +46,28 @@ def hash_file(path):
 
     return hasher.hexdigest()
 
-def convert_pdf_to_txt(path):
-    #from : http://stackoverflow.com/questions/5725278/how-do-i-use-pdfminer-as-a-library
+def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/jmcarp/7105045
+    # PDFMiner boilerplate
     rsrcmgr = PDFResourceManager()
-    retstr = StringIO()
+    sio = StringIO()
     codec = 'utf-8'
     laparams = LAParams()
-    device = TextConverter(rsrcmgr, retstr, codec=codec, laparams=laparams)
-
-    fp = file(path, 'rb')
-
-    parser = PDFParser(fp)
-    doc = PDFDocument(parser)
-    parser.set_document(doc)
-
+    device = TextConverter(rsrcmgr, sio, codec=codec, laparams=laparams)
     interpreter = PDFPageInterpreter(rsrcmgr, device)
-    password = ""
-    maxpages = 0
-    caching = True
-    pagenos=set()
 
-    for page in PDFPage.get_pages(
-      fp, pagenos, maxpages=maxpages,
-      password=password,caching=caching, check_extractable=True):
+    # Extract text
+    fp = file(pdfname, 'rb')
+    for page in PDFPage.get_pages(fp):
         interpreter.process_page(page)
-    
-    text = retstr.getvalue()
     fp.close()
+
+    # Get text from StringIO
+    text = sio.getvalue()
+
+    # Cleanup
     device.close()
-    retstr.close()
+    sio.close()
+
     return text
 
 def read_as_txt(pdf_path):
