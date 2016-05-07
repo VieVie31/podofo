@@ -4,6 +4,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['PDF_DIR'] = './pdf/'
 app.config['DB_PATH'] = './app/sql/'
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 #10 Mo size max for upload
 
 from app import views
 
