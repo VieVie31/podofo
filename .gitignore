@@ -6,3 +6,4 @@ pdf/
 *.pyo
 *.swp
 *.db
+app/sql/*.db

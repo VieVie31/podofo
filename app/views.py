@@ -52,9 +52,9 @@ def uploaded_page():
 		#remove the pdf from the directory
 		remove(pdf_path)
 		return "This pdf allready exist in the database... <a href='/search'>search</a>."
-	    insert_pdf_to_db(file_name) #add the pdf to the database
+	    pdf_id = insert_pdf_to_db(file_name) #add the pdf to the database
 	    # TODO : update all the words frequencies ... cf. counter
-	    return "File {} successfully uploaded... <a href='/search'>search</a>.</br>{}".format(uploaded_file.filename, str(counter))
+	    return "File {} successfully uploaded as  {}... <a href='/search'>search</a>.</br>{}".format(uploaded_file.filename, str(pdf_id), str(counter))
     except:
 	return "Fail to upload"
 

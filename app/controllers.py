@@ -1,3 +1,4 @@
+import re
 import hashlib
 import sqlite3
 
@@ -21,17 +22,36 @@ def pdf_allready_exists(pdf_name):
     conn = conn_to_db('pdf.db')
     cursor = conn.execute("SELECT NAME, HASH, DATE FROM PDF WHERE HASH = '{}'".format(pdf_hash))
     for row in cursor: #just look if it contain one...
+	conn.close()
 	return True
+    conn.close()
     return False
 
 def insert_pdf_to_db(pdf_name):
-    # insert a pdf into the database
+    # insert a pdf into the database and return his id
     path = app.config['PDF_DIR'] + pdf_name
     conn = conn_to_db('pdf.db')
-    conn.execute("INSERT INTO PDF (NAME, HASH, DATE) VALUES ('{}', '{}', {})".format(
-				   pdf_name, hash_file(path), int(time())))
+    cursor = conn.execute("INSERT INTO PDF (NAME, HASH, DATE) VALUES ('{}', '{}', {})".format(
+					    pdf_name, hash_file(path), int(time())))
     conn.commit()
+    pdf_id = cursor.lastrowid
     conn.close()
+    return pdf_id
+
+def get_total_pdfs_word_count_of(word):
+    # TODO : secure the word ??
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT ID, WORD, TOTAL_COUNT FROM WORD WHERE WORD = '{}'".format(word))
+    for row in cursor: #just one row...
+	conn.close()
+	return row[0], row[2] #id, total_count
+    conn.close()
+    return -1, 0 #index -1 because not exists, and total count 0
+
+def insert_or_update_word_table(word):
+    word_id, total_count = get_total_pdfs_word_count_of(word)
+    # TODO : update the changes
+    pass
 
 def hash_file(path):
     # return the md5 hash of a file
@@ -68,7 +88,7 @@ def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/j
     device.close()
     sio.close()
 
-    return text
+    return re.sub('[^0-9a-zA-Z]+', ' ', text)
 
 def read_as_txt(pdf_path):
     try:
