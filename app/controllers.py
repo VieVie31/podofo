@@ -1,6 +1,7 @@
 import re
 import hashlib
 import sqlite3
+import unicodedata
 
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
@@ -38,20 +39,12 @@ def insert_pdf_to_db(pdf_name):
     conn.close()
     return pdf_id
 
-def get_total_pdfs_word_count_of(word):
-    # TODO : secure the word ??
+def insert_word_to_db(pdf_id, word, freq):
     conn = conn_to_db('pdf.db')
-    cursor = conn.execute("SELECT ID, WORD, TOTAL_COUNT FROM WORD WHERE WORD = '{}'".format(word))
-    for row in cursor: #just one row...
-	conn.close()
-	return row[0], row[2] #id, total_count
+    conn.execute("INSERT INTO FREQ (PDF_ID, WORD, W_FREQ) VALUES ({}, '{}', {})".format(
+				    pdf_id, word, str(freq)))
+    conn.commit()
     conn.close()
-    return -1, 0 #index -1 because not exists, and total count 0
-
-def insert_or_update_word_table(word):
-    word_id, total_count = get_total_pdfs_word_count_of(word)
-    # TODO : update the changes
-    pass
 
 def hash_file(path):
     # return the md5 hash of a file
@@ -67,7 +60,6 @@ def hash_file(path):
     return hasher.hexdigest()
 
 def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/jmcarp/7105045
-    # PDFMiner boilerplate
     rsrcmgr = PDFResourceManager()
     sio = StringIO()
     codec = 'utf-8'
@@ -75,20 +67,17 @@ def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/j
     device = TextConverter(rsrcmgr, sio, codec=codec, laparams=laparams)
     interpreter = PDFPageInterpreter(rsrcmgr, device)
 
-    # Extract text
     fp = file(pdfname, 'rb')
     for page in PDFPage.get_pages(fp):
         interpreter.process_page(page)
     fp.close()
 
-    # Get text from StringIO
     text = sio.getvalue()
 
-    # Cleanup
     device.close()
     sio.close()
 
-    return re.sub('[^0-9a-zA-Z]+', ' ', text)
+    return re.sub('[^0-9a-zA-Z]+', ' ', unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ASCII', 'ignore')) #re.sub('[^0-9a-zA-Z]+', ' ', text)
 
 def read_as_txt(pdf_path):
     try:

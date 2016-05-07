@@ -54,6 +54,9 @@ def uploaded_page():
 		return "This pdf allready exist in the database... <a href='/search'>search</a>."
 	    pdf_id = insert_pdf_to_db(file_name) #add the pdf to the database
 	    # TODO : update all the words frequencies ... cf. counter
+	    total_words = sum(counter.values())
+	    for word in counter:
+		insert_word_to_db(pdf_id, word, counter[word] / float(total_words))
 	    return "File {} successfully uploaded as  {}... <a href='/search'>search</a>.</br>{}".format(uploaded_file.filename, str(pdf_id), str(counter))
     except:
 	return "Fail to upload"
