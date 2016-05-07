@@ -1,4 +1,5 @@
 import re
+import math
 import hashlib
 import sqlite3
 import unicodedata
@@ -10,6 +11,7 @@ from pdfminer.pdfpage import PDFPage
 
 from collections import Counter
 from cStringIO import StringIO
+from datetime import datetime
 from time import time
 from app import app
 
@@ -45,6 +47,92 @@ def insert_word_to_db(pdf_id, word, freq):
 				    pdf_id, word, str(freq)))
     conn.commit()
     conn.close()
+
+def count_pdf():
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT COUNT(*) FROM PDF")
+
+    for row in cursor: #only one results...
+	conn.close()
+	return int(row[0])
+
+    conn.close() #just in case...
+    return 0
+
+def get_tf(words): #return a dict with (pdf_id, word) as key and tf as value
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT PDF_ID, WORD, W_FREQ FROM FREQ WHERE WORD in ({})".format(
+	"'" + "','".join(words) + "'"))
+    conn.commit()
+
+    tf = {}
+    for row in cursor:
+	tf[(row[0], row[1])] = row[2]
+
+    conn.close()
+    return tf
+
+def get_idf(words): #return a dict with word as key and idf as value
+    nb_pdf = count_pdf()
+
+    conn = conn_to_db('pdf.db')
+    #conn.create_function('log', math.log)
+    cursor = conn.execute("SELECT WORD, COUNT(PDF_ID) FROM FREQ WHERE WORD IN ({}) GROUP BY WORD".format(
+	"'" + "','".join(words) + "'"))
+    conn.commit()
+
+    idf = {}
+    for row in cursor:
+	idf[row[0]] = nb_pdf / float(row[1] if row[1] > 0 else '+inf')
+        idf[row[0]] = math.log(idf[row[0]]) if idf[row[0]] != 0 else 0.
+
+    conn.close()
+    return idf
+
+def get_pdf_score(words):
+    tf  = get_tf(words)
+    idf = get_idf(words)
+    
+    tf_idf = {}
+    for (pdf_id, word) in tf:
+	if pdf_id in tf_idf:
+	    tf_idf[pdf_id] += tf[(pdf_id, word)] * idf[word]
+	else:
+	    tf_idf[pdf_id] = tf[(pdf_id, word)] * idf[word]
+
+    return tf_idf
+
+def get_best_pdfs(words, nb_max_pdfs=8, offset=0, nb_min_pdfs=8):
+    tf_idf = get_pdf_score(words)
+
+    pdf_id_score = zip(tf_idf.keys(), tf_idf.values())
+    pdf_id_score.sort(key=lambda c: c[1], reverse=True)
+    pdf_id_score = pdf_id_score[offset:offset+nb_max_pdfs]
+
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT ID, NAME, DATE FROM PDF WHERE ID IN ({})".format(
+	",".join(map(lambda c: str(c[0]), pdf_id_score)))) 
+    conn.commit()
+
+    pdfs = []
+    for i, row in enumerate(cursor):
+	pdfs.append({"pdf_name" : row[1], "date" : format(datetime.fromtimestamp(row[2]), '%d/%m/%Y'), "score" : pdf_id_score[i][1] * 100}) #name, date, score
+
+    conn.close()
+
+    if len(pdfs) == nb_max_pdfs:
+	return pdfs
+
+    conn = conn_to_db('pdf.db')
+    cursor = conn.execute("SELECT NAME, DATE FROM PDF ORDER BY RANDOM() LIMIT {}".format(str(nb_min_pdfs - len(pdfs))))
+    conn.commit()
+
+    for row in cursor:
+	pdfs.append({"pdf_name" : row[0], "date" : format(datetime.fromtimestamp(row[1]), '%d/%m/%Y'), "score" : 0})
+
+    conn.close()
+
+    return pdfs
 
 def hash_file(path):
     # return the md5 hash of a file

@@ -6,22 +6,27 @@ from os import listdir, remove
 from controllers import *
 
 import random
+import unicodedata
 
 @app.route('/', methods=['GET'])
 @app.route('/search', methods=['GET'])
 def search_page():
     query = request.args.get('s')
+
     if not query:
         return render_template('search.html')
-    # TODO : gerer la requete pour de vrai... :p
-    #code temporaire pour tester le template
-    rows = []
-    for i in range(8):
-	row = {}
-	row["pdf_name"] = str(time()) + "_" + "".join([chr(random.randrange(97, 97 + 26)) for i in range(random.randint(3, 10))]) + ".pdf"
-	row["score"] = random.randint(0, 999999) / 10.
-	rows.append(row)
-    #fin du code temporaire
+
+    query = query.lower()
+    query = unicodedata.normalize('NFKD', query).encode('ASCII', 'ignore')
+    words = query.split()[:5] #max 5 words for querying...
+    words = map(secure_filename, words)
+    query = " ".join(words)
+
+    if not words:
+        return render_template('search.html')
+
+    rows = get_best_pdfs(words)
+
     return render_template('results.html', user_request=query, rows=rows) #"Here will be the search results for {}".format(query)
 
 @app.route('/upload', methods=['GET'])
