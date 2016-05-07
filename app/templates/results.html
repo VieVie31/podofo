@@ -1,0 +1,51 @@
+<html>
+<head>
+  <title>Search</title>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/search.css') }}">
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/results.css') }}">
+</head>
+<body>
+
+<nav>
+  <a title="Upload a new PDF" class="upload-link" href="/search">+ Search</a>
+</nav>
+
+<!--
+<form>
+  <input type="text" name="s">
+  <input type="submit" class="search" value="Search" formmethod="get">
+</form>
+-->
+
+<h1>
+  Results for :
+  <span class="words-results">{{ user_request }}</span> 
+</h1>
+
+<div class="words-results">
+{% for row in rows %}
+<div class="result">
+  <div>
+    <a href="/pdf/{{ row['pdf_name'] }}" class="result__title">
+      {{ "_".join(row["pdf_name"].split("_")[1:]) }}
+    </a>
+  </div>
+
+  <div class="result__url">
+    <span>/pdf/</span>
+    <strong>{{ row["pdf_name"] }}</strong>
+  </div>
+
+  <div class="result__description">
+    Score : {{ row["score"] }}
+  </div>
+</div>
+{% endfor %}
+</div>
+
+</body>
+</html>
+

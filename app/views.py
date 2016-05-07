@@ -5,13 +5,24 @@ from time import time
 from os import listdir, remove
 from controllers import *
 
+import random
+
 @app.route('/', methods=['GET'])
 @app.route('/search', methods=['GET'])
 def search_page():
     query = request.args.get('s')
     if not query:
         return render_template('search.html')
-    return "Here will be the search results for {}".format(query)
+    # TODO : gerer la requete pour de vrai... :p
+    #code temporaire pour tester le template
+    rows = []
+    for i in range(8):
+	row = {}
+	row["pdf_name"] = str(time()) + "_" + "".join([chr(random.randrange(97, 97 + 26)) for i in range(random.randint(3, 10))]) + ".pdf"
+	row["score"] = random.randint(0, 999999) / 10.
+	rows.append(row)
+    #fin du code temporaire
+    return render_template('results.html', user_request=query, rows=rows) #"Here will be the search results for {}".format(query)
 
 @app.route('/upload', methods=['GET'])
 def upload_page():
