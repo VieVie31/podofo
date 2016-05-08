@@ -13,9 +13,15 @@ import unicodedata
 @app.route('/search', methods=['GET'])
 def search_page():
     query = request.args.get('s')
+    page  = request.args.get('p')
 
     if not query:
-        return render_template('search.html')
+        return render_template('search.html', count_pdf=count_pdf())
+
+    try:
+	page = int(page)
+    except:
+        page = 0
 
     query = query.lower()
     query = unicodedata.normalize('NFKD', query).encode('ASCII', 'ignore')
@@ -26,9 +32,9 @@ def search_page():
     if not words:
         return render_template('search.html')
 
-    rows = get_best_pdfs(words)
+    rows, speed, next_button = get_results(words, page)
 
-    return render_template('results.html', user_request=query, rows=rows) #"Here will be the search results for {}".format(query)
+    return render_template('results.html', user_request=query, rows=rows, speed=speed) #"Here will be the search results for {}".format(query)
 
 @app.route('/upload', methods=['GET'])
 def upload_page():

@@ -2,6 +2,16 @@
   box-sizing: border-box;
 }
 
+footer.footer-info {
+  text-align: center;
+  bottom: 5px;
+  position: absolute;
+  width: 100%;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: grey;
+}
+
 html {
   -webkit-transition: opacity .5s;
   transition: opacity .5s;

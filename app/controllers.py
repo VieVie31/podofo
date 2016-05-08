@@ -17,6 +17,7 @@ from app import app
 
 def conn_to_db(db_name):
     conn = sqlite3.connect(app.config['DB_PATH'] + db_name)
+    conn.create_function('LOG', 1, math.log)
     return conn
 
 def pdf_allready_exists(pdf_name):
@@ -59,84 +60,52 @@ def count_pdf():
     conn.close() #just in case...
     return 0
 
-def get_tf(words): #return a dict with (pdf_id, word) as key and tf as value
-    conn = conn_to_db('pdf.db')
-    cursor = conn.execute("SELECT PDF_ID, WORD, W_FREQ FROM FREQ WHERE WORD in ({})".format(
-	"'" + "','".join(words) + "'"))
-    conn.commit()
-
-    tf = {}
-    for row in cursor:
-	tf[(row[0], row[1])] = row[2]
-
-    conn.close()
-    return tf
-
-def get_idf(words): #return a dict with word as key and idf as value
+def get_results(words, page=0, nb_max_by_pages=8, nb_min_pdfs=8):
     nb_pdf = count_pdf()
+    ws = "'" + "','".join(words) + "'"
 
     conn = conn_to_db('pdf.db')
-    #conn.create_function('log', math.log)
-    cursor = conn.execute("SELECT WORD, COUNT(PDF_ID) FROM FREQ WHERE WORD IN ({}) GROUP BY WORD".format(
-	"'" + "','".join(words) + "'"))
+
+    start_time = time()
+    # a pdf_score is calculated  with sum(tf-idf) of words matched time the number of different words matched on the pdf
+    cursor = conn.execute("""
+	SELECT PDF_ID, NAME, DATE, WORD, SUM(W_FREQ * LOG(TIDF)) * COUNT(WORD) AS SCORE
+	FROM (SELECT PDF_ID, WORD, W_FREQ
+	      FROM FREQ
+	      WHERE WORD IN ({}))
+	  INNER JOIN
+	     (SELECT PDF_ID AS P2, WORD AS W2, {} / COUNT(PDF_ID) AS TIDF
+	      FROM FREQ WHERE W2 IN ({})
+	      GROUP BY W2) ON WORD = W2
+          INNER JOIN
+	     (SELECT ID, NAME, DATE
+	      FROM PDF) ON ID = PDF_ID
+	GROUP BY PDF_ID
+	ORDER BY SCORE DESC
+	LIMIT {} OFFSET {}
+      """.format(ws, str(float(nb_pdf)), ws, nb_max_by_pages, nb_max_by_pages * page))
     conn.commit()
-
-    idf = {}
-    for row in cursor:
-	idf[row[0]] = nb_pdf / float(row[1] if row[1] > 0 else '+inf')
-        idf[row[0]] = math.log(idf[row[0]]) if idf[row[0]] != 0 else 0.
-
-    conn.close()
-    return idf
-
-def get_pdf_score(words):
-    tf  = get_tf(words)
-    idf = get_idf(words)
-    
-    tf_idf = {}
-    for (pdf_id, word) in tf:
-	if pdf_id in tf_idf:
-	    tf_idf[pdf_id] += tf[(pdf_id, word)] * idf[word]
-	else:
-	    tf_idf[pdf_id] = tf[(pdf_id, word)] * idf[word]
-
-    nb_words_matched_weights = Counter(map(lambda c: c[0], tf.keys()))
-    for pdf_id in tf_idf:
-	tf_idf[pdf_id] *= nb_words_matched_weights[pdf_id]
-
-    return tf_idf
-
-def get_best_pdfs(words, nb_max_pdfs=8, offset=0, nb_min_pdfs=8):
-    tf_idf = get_pdf_score(words)
-
-    pdf_id_score = zip(tf_idf.keys(), tf_idf.values())
-    pdf_id_score.sort(key=lambda c: c[1], reverse=True)
-    pdf_id_score = pdf_id_score[offset:offset+nb_max_pdfs]
-
-    conn = conn_to_db('pdf.db')
-    cursor = conn.execute("SELECT ID, NAME, DATE FROM PDF WHERE ID IN ({})".format(
-	",".join(map(lambda c: str(c[0]), pdf_id_score)))) 
-    conn.commit()
+    end_time = time()    
 
     pdfs = []
     for i, row in enumerate(cursor):
-	pdfs.append({"pdf_name" : row[1], "date" : format(datetime.fromtimestamp(row[2]), '%d/%m/%Y'), "score" : pdf_id_score[i][1] * 100}) #name, date, score
-
+	pdfs.append({"pdf_name" : row[1],
+		     "date"     : format(datetime.fromtimestamp(row[2]), '%d/%m/%Y'),
+		     "score"    : row[4] * 100})
     conn.close()
 
-    if len(pdfs) == nb_max_pdfs:
-	return pdfs
+    if len(pdfs) == nb_max_by_pages:
+	return pdfs, end_time - start_time, True #pdfs list, time took to process and True for telling to display a "next button"
 
     conn = conn_to_db('pdf.db')
     cursor = conn.execute("SELECT NAME, DATE FROM PDF ORDER BY RANDOM() LIMIT {}".format(str(nb_min_pdfs - len(pdfs))))
     conn.commit()
 
     for row in cursor:
-	pdfs.append({"pdf_name" : row[0], "date" : format(datetime.fromtimestamp(row[1]), '%d/%m/%Y'), "score" : 0})
+        pdfs.append({"pdf_name" : row[0], "date" : format(datetime.fromtimestamp(row[1]), '%d/%m/%Y'), "score" : 0})
 
     conn.close()
-
-    return pdfs
+    return pdfs, end_time - start_time, False #pdfs list, time took to process and False for telling to not display a "next button"
 
 def hash_file(path):
     # return the md5 hash of a file

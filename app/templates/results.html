@@ -22,7 +22,7 @@
 {% for row in rows %}
 <div class="result">
   <div>
-    <a href="/pdf/{{ row['pdf_name'] }}" class="result__title">
+    <a href="/pdf/{{ row['pdf_name'] }}" target="_blank" class="result__title">
       {{ "_".join(row["pdf_name"].split("_")[1:]) }}
     </a>
   </div>
@@ -39,6 +39,13 @@
 {% endfor %}
 </div>
 
+<!--
+TODO : add a next button here if there are other results...
+-->
+
+<footer class="footer-info">
+  results found in <strong>{{ speed }}</strong><small>s</small>.
+</footer>
 </body>
 </html>
 

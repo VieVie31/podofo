@@ -38,3 +38,17 @@ SELECT PDF_ID, WORD, W_FREQ FROM FREQ WHERE WORD in ('the', 'yahoo')
 SELECT ID, NAME, DATE FROM PDF WHERE ID IN (2, 3);;
 
 
+
+/* Get for each word the frequency by pdf and almost idf (not passed in the log function) */
+SELECT PDF_ID, WORD, W_FREQ, TIDF AS IDF
+FROM (SELECT PDF_ID, WORD, W_FREQ 
+      FROM FREQ
+      WHERE WORD IN ('tweets', 'social', 'hadoop'))
+  INNER JOIN
+     (SELECT PDF_ID AS P2, WORD AS W2, 72.0 / COUNT(PDF_ID) AS TIDF
+      FROM FREQ WHERE W2 IN ('tweets', 'social', 'hadoop')
+      GROUP BY W2) ON WORD = W2
+;;
+
+
+
