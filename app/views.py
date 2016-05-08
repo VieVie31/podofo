@@ -38,7 +38,7 @@ def upload_page():
 def uploaded_page():
     # FIXME : this function is too long (in lines and speed) !! use a thread ?
     try:
-	if len(listdir(app.config['PDF_DIR'])) > 50:
+	if len(listdir(app.config['PDF_DIR'])) > 200:
 	    return "Too many pdf all ready uploaded..."
 
 	uploaded_file = request.files['file']
@@ -62,7 +62,7 @@ def uploaded_page():
 	counter = None
 	try:
 	    #adding the file name to the text for searching by file name...
-	    norm_filnam = normalize_txt(file_name.replace('_', ' ').replace('.', ' '))
+	    norm_filnam = normalize_txt(file_name.replace('_', ' ').replace('.', ' ').replace('-', ' '))
             txt = read_as_txt(pdf_path) + " " + norm_filnam
 
     	    if not txt:

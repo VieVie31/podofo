@@ -100,6 +100,10 @@ def get_pdf_score(words):
 	else:
 	    tf_idf[pdf_id] = tf[(pdf_id, word)] * idf[word]
 
+    nb_words_matched_weights = Counter(map(lambda c: c[0], tf.keys()))
+    for pdf_id in tf_idf:
+	tf_idf[pdf_id] *= nb_words_matched_weights[pdf_id]
+
     return tf_idf
 
 def get_best_pdfs(words, nb_max_pdfs=8, offset=0, nb_min_pdfs=8):
