@@ -22,17 +22,17 @@ body {
   font-family: 'Helvetica', Arial, sans-serif;
 }
 
-a {
+a, .a {
   color: #168dff;
   text-decoration: none;
 }
 
-a:hover {
+a:hover, .a:hover {
   text-decoration: underline;
 }
 
-a:visited {
-  color: red;
+a:visited, .a:visited {
+  color: #706778;
 }
 
 .upload-link {

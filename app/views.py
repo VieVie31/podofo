@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, abort, session
+from flask import Flask, render_template, request, redirect, url_for, abort, session, send_from_directory, send_file
 from werkzeug import secure_filename
 from app import app
 from time import time
-from os import listdir, remove
+from os import listdir, remove, getcwd
 from controllers import *
 
+import io
 import random
 import unicodedata
 
@@ -60,7 +61,9 @@ def uploaded_page():
 
 	counter = None
 	try:
-            txt = read_as_txt(pdf_path)
+	    #adding the file name to the text for searching by file name...
+	    norm_filnam = normalize_txt(file_name.replace('_', ' ').replace('.', ' '))
+            txt = read_as_txt(pdf_path) + " " + norm_filnam
 
     	    if not txt:
 		remove(pdf_path)
@@ -78,4 +81,18 @@ def uploaded_page():
 	return "File {} successfully uploaded as  {}... <a href='/search'>search</a>.".format(uploaded_file.filename, str(pdf_id))
     except:
 	return "Fail to upload"
+
+
+@app.route('/pdf/<pdf_name>')
+def return_pdf(pdf_name):
+    try: # FIXME : when a client load a pdf, the others clients can't acces to the app !! :(
+	f = open(app.config['PDF_DIR'] + secure_filename(pdf_name), 'rb')
+	pdf_out = io.BytesIO(f.read())
+	f.close()
+    	return send_file(pdf_out,
+			 attachment_filename=pdf_name,
+			 mimetype='application/pdf;')
+    except:
+        abort(404)
+
 

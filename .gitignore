@@ -6,4 +6,5 @@ pdf/
 *.pyo
 *.swp
 *.db
+*.db-journal
 app/sql/*.db

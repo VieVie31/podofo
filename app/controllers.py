@@ -147,6 +147,9 @@ def hash_file(path):
 
     return hasher.hexdigest()
 
+def normalize_txt(text):
+    return re.sub('[^0-9a-zA-Z]+', ' ', unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ASCII', 'ignore'))
+
 def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/jmcarp/7105045
     rsrcmgr = PDFResourceManager()
     sio = StringIO()
@@ -165,7 +168,7 @@ def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/j
     device.close()
     sio.close()
 
-    return re.sub('[^0-9a-zA-Z]+', ' ', unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ASCII', 'ignore')) #re.sub('[^0-9a-zA-Z]+', ' ', text)
+    return normalize_txt(text)
 
 def read_as_txt(pdf_path):
     try:
