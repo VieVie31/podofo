@@ -9,3 +9,4 @@ pdf/
 *.db
 *.db-journal
 app/sql/*.db
+.keep
