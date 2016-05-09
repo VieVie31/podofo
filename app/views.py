@@ -91,13 +91,8 @@ def uploaded_page():
 
 @app.route('/pdf/<pdf_name>')
 def return_pdf(pdf_name):
-    try: # FIXME : when a client load a pdf, the others clients can't acces to the app !! :(
-	f = open(app.config['PDF_DIR'] + secure_filename(pdf_name), 'rb')
-	pdf_out = io.BytesIO(f.read())
-	f.close()
-    	return send_file(pdf_out,
-			 attachment_filename=pdf_name,
-			 mimetype='application/pdf;')
+    try:
+	return redirect(url_for('static', filename=app.config['PDF_DIR'] + secure_filename(pdf_name)))
     except:
         abort(404)
 

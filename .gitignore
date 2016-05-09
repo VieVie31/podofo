@@ -5,6 +5,7 @@ pdf/
 *.pyc
 *.pyo
 *.swp
+*.pdf
 *.db
 *.db-journal
 app/sql/*.db
