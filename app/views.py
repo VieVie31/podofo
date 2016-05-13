@@ -19,7 +19,7 @@ def search_page():
         return render_template('search.html', count_pdf=count_pdf())
 
     try:
-        page = int(page)
+        page = abs(int(page))
     except:
         page = 0
 
@@ -36,7 +36,10 @@ def search_page():
 
     rows, speed, next_button = get_results(words, page)
 
-    return render_template('results.html', user_request=query, rows=rows, speed=speed) #"Here will be the search results for {}".format(query)
+    if next_button:
+        next_button = page + 1
+
+    return render_template('results.html', user_request=query, rows=rows, speed=speed, next_button=next_button)
 
 @app.route('/upload', methods=['GET'])
 def upload_page():

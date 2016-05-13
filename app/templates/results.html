@@ -43,6 +43,12 @@
 TODO : add a next button here if there are other results...
 -->
 
+{% if next_button > 0 %}
+<a href="/search?s={{ user_request }}&p={{ next_button }}" class="next-page">
+Next page >
+</a>
+{% endif %}
+
 <footer class="footer-info">
   results found in <strong>{{ speed }}</strong><small>s</small>.
 </footer>
