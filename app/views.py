@@ -16,7 +16,7 @@ def search_page():
     page  = request.args.get('p')
 
     if not query:
-        return render_template('search.html', count_pdf=count_pdf())
+        return render_template('search.html', allow_upload=app.config['ALLOW_UPLOAD'], count_pdf=count_pdf())
 
     try:
         page = abs(int(page))
@@ -43,10 +43,15 @@ def search_page():
 
 @app.route('/upload', methods=['GET'])
 def upload_page():
+    if not app.config['ALLOW_UPLOAD']:
+        return render_template('search.html')
     return render_template('upload.html')
 
 @app.route('/upload', methods=['POST'])
 def uploaded_page():
+    if not app.config['ALLOW_UPLOAD']:
+        return render_template('search.html')
+
     # FIXME : this function is too long (in lines and speed) !! use a thread ?
     try:
         if len(listdir(app.config['PDF_DIR_LOC'] + app.config['PDF_DIR'])) > 200:

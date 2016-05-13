@@ -8,9 +8,11 @@
 </head>
 <body>
 
+{% if allow_upload %}
 <nav>
   <a title="Upload a new PDF" class="upload-link" href="/upload">+ Upload</a>
 </nav>
+{% endif %}
 
 <form>
   <input type="text" name="s">
