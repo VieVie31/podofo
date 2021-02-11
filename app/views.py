@@ -12,7 +12,7 @@ import unicodedata
 @app.route('/', methods=['GET'])
 @app.route('/search', methods=['GET'])
 def search_page():
-    query = request.args.get('s')
+    query = request.args.get('s', type=str)
     page  = request.args.get('p')
 
     if not query:
@@ -25,21 +25,17 @@ def search_page():
 
     query = query.lower()
     query = unicodedata.normalize('NFKD', query) 
-    words = query.split()[:5] #max 5 words for querying...
-    words = map(secure_filename, words)
-    query = " ".join(words)
+    sentence = ''.join(query).split()
 
-    words = map(lemmatize, words)
-
-    if not words:
+    if not query:
         return render_template('search.html')
 
-    rows, speed, next_button = get_results(words, page)
+    rows, speed, next_button = get_results(sentence, page)
 
     if next_button:
         next_button = page + 1
 
-    return render_template('results.html', user_request=query, rows=rows, speed=speed, next_button=next_button)
+    return render_template('results.html', user_request=" ".join(sentence), rows=rows, speed=speed, next_button=next_button)
 
 @app.route('/upload', methods=['GET'])
 def upload_page():
@@ -80,7 +76,6 @@ def uploaded_page():
             #adding the file name to the text for searching by file name...
             norm_filnam = normalize_txt(file_name.replace('_', ' ').replace('.', ' ').replace('-', ' '))
             txt = read_as_txt(pdf_path) + " " + norm_filnam
-
             if not txt:
                 remove(pdf_path)
                 return "We cann't extract nothing from this pdf... <a href='/search'>search</a>."
