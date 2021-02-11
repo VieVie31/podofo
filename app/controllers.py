@@ -10,12 +10,12 @@ from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 
 from collections import Counter
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 from time import time
 from app import app
 
-from porter_stemmer import PorterStemmer
+from .porter_stemmer import PorterStemmer
 
 stemmer = PorterStemmer()
 
