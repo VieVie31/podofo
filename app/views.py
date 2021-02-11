@@ -1,9 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, abort, session, send_from_directory, send_file
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 from app import app
 from time import time
 from os import listdir, remove, getcwd
-from controllers import *
+from .controllers import *
 
 import io
 import random
@@ -24,7 +24,7 @@ def search_page():
         page = 0
 
     query = query.lower()
-    query = unicodedata.normalize('NFKD', query).encode('ASCII', 'ignore')
+    query = unicodedata.normalize('NFKD', query) 
     words = query.split()[:5] #max 5 words for querying...
     words = map(secure_filename, words)
     query = " ".join(words)
@@ -86,6 +86,7 @@ def uploaded_page():
                 return "We cann't extract nothing from this pdf... <a href='/search'>search</a>."
 
             counter = get_word_cout(txt)
+
         except:
             remove(pdf_path)
             return "This is not a pdf... <a href='/search'>search</a>." 
