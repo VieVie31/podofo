@@ -15,7 +15,15 @@ or [here](orissermaroix.url.ph/?p=tfidf_pdf_search_engine "tf-idf pdf search eng
 
 
 # Azure Install in VM
-* Ubuntu 18.04 Server
+* Ubuntu 18.04 Server as VM Image. Open ports 22 and 80
 * sudo apt update
-* sudo apt install rustc libssl-dev python3-pip python3-setuptools
+* sudo apt install rustc libssl-dev python3-pip python3-setuptools sqlite3
+* git clone https://github.com/mharrend/podofo.git
+* cd podofo
 * pip3 install -r requirements.txt
+* Change port to 80 in run.py and shebang to python3
+* cd app/sql
+* ./reset-db.sh
+* cd ../../
+* ./run.py
+
