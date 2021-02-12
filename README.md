@@ -12,3 +12,10 @@ On youtube :
 (https://www.youtube.com/watch?v=iz0-QGdS9Rg)
 
 or [here](orissermaroix.url.ph/?p=tfidf_pdf_search_engine "tf-idf pdf search engine").
+
+
+# Azure Install in VM
+* Ubuntu 18.04 Server
+* sudo apt update
+* sudo apt install rustc libssl-dev python3-pip python3-setuptools
+* pip3 install -r requirements.txt
