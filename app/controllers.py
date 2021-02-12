@@ -72,7 +72,7 @@ def get_results(words, page=0, nb_max_by_pages=8, nb_min_pdfs=8):
     start_time = time()
     # a pdf_score is calculated  with sum(tf-idf) of words matched time the number of different words matched on the pdf
     cursor = conn.execute("""
-        SELECT PDF_ID, NAME, DATE, WORD, SUM(W_FREQ * LOG(TIDF)) * COUNT(WORD) AS SCORE
+        SELECT PDF_ID, NAME, DATE, WORD, SUM(W_FREQ * (TIDF)) * COUNT(WORD) AS SCORE
         FROM (SELECT PDF_ID, WORD, W_FREQ
               FROM FREQ
               WHERE WORD IN ({}))
