@@ -21,7 +21,7 @@ or [here](orissermaroix.url.ph/?p=tfidf_pdf_search_engine "tf-idf pdf search eng
 * git clone https://github.com/mharrend/podofo.git
 * cd podofo
 * pip3 install -r requirements.txt
-* Change port to 80 in run.py and shebang to python3
+* Change shebang to python3 in run.py
 * cd app/sql
 * ./reset-db.sh
 * cd ../../
