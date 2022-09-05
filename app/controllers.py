@@ -4,18 +4,15 @@ import hashlib
 import sqlite3
 import unicodedata
 
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
+from pdfminer.high_level import extract_text
 
 from collections import Counter
-from cStringIO import StringIO
+from io import StringIO
 from datetime import datetime
 from time import time
 from app import app
 
-from porter_stemmer import PorterStemmer
+from .porter_stemmer import PorterStemmer
 
 stemmer = PorterStemmer()
 
@@ -70,13 +67,12 @@ def count_pdf():
 def get_results(words, page=0, nb_max_by_pages=8, nb_min_pdfs=8):
     nb_pdf = count_pdf()
     ws = "'" + "','".join(words) + "'"
-
     conn = conn_to_db('pdf.db')
 
     start_time = time()
     # a pdf_score is calculated  with sum(tf-idf) of words matched time the number of different words matched on the pdf
     cursor = conn.execute("""
-        SELECT PDF_ID, NAME, DATE, WORD, SUM(W_FREQ * LOG(TIDF)) * COUNT(WORD) AS SCORE
+        SELECT PDF_ID, NAME, DATE, WORD, SUM(W_FREQ * (TIDF)) * COUNT(WORD) AS SCORE
         FROM (SELECT PDF_ID, WORD, W_FREQ
               FROM FREQ
               WHERE WORD IN ({}))
@@ -128,33 +124,15 @@ def hash_file(path):
     return hasher.hexdigest()
 
 def normalize_txt(text):
-    return re.sub('[^0-9a-zA-Z]+', ' ', unicodedata.normalize('NFKD', unicode(text, 'utf-8')).encode('ASCII', 'ignore'))
+    return re.sub('[^0-9a-zA-Z]+', ' ', text)
 
-def convert_pdf_to_txt(pdfname): # just stollen here : https://gist.github.com/jmcarp/7105045
-    rsrcmgr = PDFResourceManager()
-    sio = StringIO()
-    codec = 'utf-8'
-    laparams = LAParams()
-    device = TextConverter(rsrcmgr, sio, codec=codec, laparams=laparams)
-    interpreter = PDFPageInterpreter(rsrcmgr, device)
-
-    fp = file(pdfname, 'rb')
-    for page in PDFPage.get_pages(fp):
-        interpreter.process_page(page)
-    fp.close()
-
-    text = sio.getvalue()
-
-    device.close()
-    sio.close()
+def convert_pdf_to_txt(pdfname): 
+    text = extract_text(pdfname)
 
     return normalize_txt(text)
 
 def read_as_txt(pdf_path):
-    try:
-        return convert_pdf_to_txt(pdf_path)
-    except:
-        return ''
+    return convert_pdf_to_txt(pdf_path)
 
 def get_word_cout(txt):
     words = map(lemmatize, txt.lower().split())

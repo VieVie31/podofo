@@ -9,3 +9,5 @@ instance/
 *.db-journal
 app/sql/*.db
 .keep
+app/static/pdf/*.pdf
+app/static/pdf/*.PDF
